@@ -1,6 +1,6 @@
-package io.github.kosmx.bendylib;
+package io.github.kosmx.bendylib.api;
 
-import io.github.kosmx.bendylib.impl.DummyCuboid;
+import io.github.kosmx.bendylib.WorkaroundEnum;
 import io.github.kosmx.bendylib.impl.accessors.IModelPartAccessor;
 import net.minecraft.client.model.geom.ModelPart;
 
@@ -16,25 +16,12 @@ public final class ModelPartAccessor {
         return ((IModelPartAccessor)modelPart).getChildren();
     }
 
-    /**
-     * Get a cuboid, and cast it to {@link MutableCuboid}
-     * Use {@link ModelPartAccessor#optionalGetCuboid(ModelPart, int)}
-     * @param modelPart
-     * @param index
-     * @return
-     */
-    @Deprecated
-    public static MutableCuboid getCuboid(ModelPart modelPart, int index){
-        Optional<MutableCuboid> optionalMutableCuboid = optionalGetCuboid(modelPart, index);
-        return optionalMutableCuboid.orElseGet(DummyCuboid::new);
+    public static void setWorkaround(ModelPart modelPart, WorkaroundEnum workaroundEnum) {
+        if (modelPart != null) ((IModelPartAccessor)modelPart).setWorkaround(workaroundEnum);
     }
 
     /**
      * Get a cuboid, and cast it to {@link MutableCuboid}
-     *
-     * @param modelPart
-     * @param index
-     * @return
      */
     public static Optional<MutableCuboid> optionalGetCuboid(ModelPart modelPart, int index){
         if(modelPart == null || getCuboids(modelPart) == null || getCuboids(modelPart).size() <= index) return Optional.empty();
@@ -43,13 +30,5 @@ public final class ModelPartAccessor {
 
     public static List<ModelPart.Cube> getCuboids(ModelPart modelPart){
         return ((IModelPartAccessor)modelPart).getCuboids();
-    }
-
-    /**
-     * Different workarounds to fix shared mod incompatibilities
-     * If needed, I advice using {@link Workaround#VanillaDraw}. that is the most stable in any modded environment.
-     */
-    public enum Workaround {
-        ExportQuads, VanillaDraw, None;
     }
 }

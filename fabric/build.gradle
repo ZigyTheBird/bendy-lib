@@ -32,11 +32,12 @@ dependencies {
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
 
+    modLocalRuntime "dev.kosmx.player-anim:player-animation-lib-fabric:${rootProject.player_anim_version}"
+
     modLocalRuntime "com.terraformersmc:modmenu:9.0.0"
     // modLocalRuntime "maven.modrinth:skinswapper:3.12"
 
     //modLocalRuntime "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_version}"
-   // modLocalRuntime "dev.kosmx.player-anim:player-animation-lib-fabric:0.4.0-test1"
     //modLocalRuntime "maven.modrinth:emotecraft:2.2.5-MC1.19.2-fabric"
 }
 

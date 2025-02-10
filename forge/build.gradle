@@ -24,6 +24,8 @@ dependencies {
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionNeoForge")) { transitive = false }
+
+    modLocalRuntime "dev.kosmx.player-anim:player-animation-lib-forge:${rootProject.player_anim_version}"
 }
 
 processResources {

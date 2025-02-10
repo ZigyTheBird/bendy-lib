@@ -1,9 +1,8 @@
 package io.github.kosmx.bendylib.impl;
 
-
 import org.joml.Vector3f;
 
-public class Vertex implements IVertex{
+public class Vertex implements IVertex {
 
     protected final Vector3f pos;
     public final float u;
@@ -12,6 +11,7 @@ public class Vertex implements IVertex{
     public Vertex(float x, float y, float z, float u, float v){
         this(new Vector3f(x, y, z), u, v);
     }
+
     public Vertex(Vector3f pos, float u, float v){
         this.pos = pos;
         this.u = u;

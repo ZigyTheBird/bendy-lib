@@ -2,12 +2,21 @@
   "required": true,
   "minVersion": "0.8",
   "package": "io.github.kosmx.bendylib.mixin",
-  "compatibilityLevel": "JAVA_16",
+  "plugin": "io.github.kosmx.bendylib.ModMixinPlugin",
+  "compatibilityLevel": "JAVA_21",
   "client": [
     "CuboidMutator",
-    "IModelPartMixin"
+    "IModelPartMixin",
+    "player_animator.AnimationApplierMixin_playerAnim",
+    "player_animator.CapeLayerMixin_playerAnim",
+    "player_animator.ElytraLayerMixin_playerAnim",
+    "player_animator.ItemInHandLayerMixin_playerAnim",
+    "player_animator.LivingEntityMixin_playerAnim",
+    "player_animator.ModelMixin_playerAnim",
+    "player_animator.PlayerCapeModelAccessor",
+    "player_animator.PlayerModelAccessor",
+    "player_animator.PlayerModelMixin_playerAnim"
   ],
-  "server": [],
   "injectors": {
     "defaultRequire": 1
   }

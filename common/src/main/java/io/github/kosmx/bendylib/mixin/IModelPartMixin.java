@@ -4,8 +4,8 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import io.github.kosmx.bendylib.ModelPartAccessor;
-import io.github.kosmx.bendylib.MutableCuboid;
+import io.github.kosmx.bendylib.WorkaroundEnum;
+import io.github.kosmx.bendylib.api.MutableCuboid;
 import io.github.kosmx.bendylib.impl.accessors.CuboidSideAccessor;
 import io.github.kosmx.bendylib.impl.accessors.IModelPartAccessor;
 import net.minecraft.client.model.geom.ModelPart;
@@ -26,17 +26,16 @@ public abstract class IModelPartMixin implements IModelPartAccessor {
 
     @Shadow @Final private List<ModelPart.Cube> cubes;
 
-    @Shadow protected abstract void compile(PoseStack.Pose arg, VertexConsumer arg2, int i, int j, int k);
-
     @Unique
     private boolean hasMutatedCuboid = false;
     /**
-     * VanillaDraw won't cause slowdown in vanilla and will fix many issues.
-     * If needed, use {@link IModelPartAccessor#setWorkaround(ModelPartAccessor.Workaround)} to set the workaround function
-     * {@link ModelPartAccessor.Workaround#None} to do nothing about it. It will work in Vanilla, but not with Sodium/OF
+     * VanillaDraw won't cause a slowdown in vanilla and will fix many issues.
+     * If needed, use {@link IModelPartAccessor#setWorkaround(WorkaroundEnum)} to set the workaround consumer
+     * {@link WorkaroundEnum#None} to do nothing about it.
+     * It will work in Vanilla, but not with Sodium.
      */
     @Unique
-    private ModelPartAccessor.Workaround workaround = ModelPartAccessor.Workaround.VanillaDraw;
+    private WorkaroundEnum workaround = WorkaroundEnum.VanillaDraw;
 
     @Override
     public List<ModelPart.Cube> getCuboids() {
@@ -68,16 +67,19 @@ public abstract class IModelPartMixin implements IModelPartAccessor {
         redirectedFunction(modelPart, entry, vertexConsumer, light, overlay, color, original);
     }
 
-    /* // check what they do here
-    @Dynamic("render function is replaced with this by Optifine")
-    @Redirect(method = "render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumer;IIFFFFZ)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/ModelPart;renderCuboids(Lnet/minecraft/client/util/math/MatrixStack$Entry;Lnet/minecraft/client/render/VertexConsumer;IIFFFF)V"), require = 0)
-    private void redirectOF(ModelPart modelPart, MatrixStack.Entry entry, VertexConsumer vertexConsumer, int light, int overlay, float red, float green, float blue, float alpha) {
-        redirectedFunction(modelPart, entry, vertexConsumer, light, overlay, red, green, blue, alpha);
-    }*/
-
     @Unique
     private void redirectedFunction(ModelPart modelPart, PoseStack.Pose entry, VertexConsumer vertexConsumer, int light, int overlay, int color, Operation<Void> original) {
-        if(workaround == ModelPartAccessor.Workaround.ExportQuads){
+        if(workaround == WorkaroundEnum.VanillaDraw){
+            if(!hasMutatedCuboid || cubes.size() == 1 && ((MutableCuboid)cubes.get(0)).getActiveMutator() == null){
+                original.call(modelPart, entry, vertexConsumer, light, overlay, color);
+            }
+            else {
+                for(ModelPart.Cube cuboid:cubes){
+                    cuboid.compile(entry, vertexConsumer, light, overlay, color);
+                }
+            }
+        }
+        else if(workaround == WorkaroundEnum.ExportQuads){
             for(ModelPart.Cube cuboid:cubes){
                 ((CuboidSideAccessor)cuboid).doSideSwapping(); //:D
             }
@@ -88,23 +90,13 @@ public abstract class IModelPartMixin implements IModelPartAccessor {
                 ((CuboidSideAccessor)cuboid).resetSides(); //:D
             }
         }
-        else if(workaround == ModelPartAccessor.Workaround.VanillaDraw){
-            if(!hasMutatedCuboid || cubes.size() == 1 && ((MutableCuboid)cubes.get(0)).getActiveMutator() == null){
-                original.call(modelPart, entry, vertexConsumer, light, overlay, color);
-            }
-            else {
-                for(ModelPart.Cube cuboid:cubes){
-                    cuboid.compile(entry, vertexConsumer, light, overlay, color);
-                }
-            }
-        }
         else {
             original.call(modelPart, entry, vertexConsumer, light, overlay, color);
         }
     }
 
     @Override
-    public void setWorkaround(ModelPartAccessor.Workaround workaround) {
+    public void setWorkaround(WorkaroundEnum workaround) {
         this.workaround = workaround;
     }
 }

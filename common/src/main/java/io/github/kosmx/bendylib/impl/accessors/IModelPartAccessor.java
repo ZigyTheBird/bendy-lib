@@ -1,6 +1,6 @@
 package io.github.kosmx.bendylib.impl.accessors;
 
-import io.github.kosmx.bendylib.ModelPartAccessor;
+import io.github.kosmx.bendylib.WorkaroundEnum;
 import net.minecraft.client.model.geom.ModelPart;
 
 import java.util.List;
@@ -15,6 +15,6 @@ public interface IModelPartAccessor {
 
     Map<String, ModelPart> getChildren(); //easy to search in it :D
 
-    void setWorkaround(ModelPartAccessor.Workaround workaround);
+    void setWorkaround(WorkaroundEnum workaround);
 
 }

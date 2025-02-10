@@ -1,11 +1,10 @@
 package io.github.kosmx.bendylib.impl;
 
-
 import org.joml.Vector3f;
 
 import java.util.Objects;
 
-public class RememberingPos implements IPosWithOrigin{
+public class RememberingPos {
     final Vector3f originPos;
     Vector3f currentPos = null;
 
@@ -34,20 +33,16 @@ public class RememberingPos implements IPosWithOrigin{
     }
 
     /**
-     * It will return with a copy
-     * @return copy of the original pos
+     * @return Copy of the original position.
      */
-    @Override
     public Vector3f getOriginalPos() {
-        return new Vector3f(originPos); //I won't let anyone to change it.
+        return new Vector3f(originPos); //I won't let anyone modify the original.
     }
 
-    @Override
     public Vector3f getPos() {
         return currentPos;
     }
 
-    @Override
     public void setPos(Vector3f vector3f) {
         this.currentPos = vector3f;
     }

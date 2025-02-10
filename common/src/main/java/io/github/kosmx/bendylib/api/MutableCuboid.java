@@ -1,18 +1,22 @@
-package io.github.kosmx.bendylib;
+package io.github.kosmx.bendylib.api;
 
-import io.github.kosmx.bendylib.impl.ICuboid;
+import io.github.kosmx.bendylib.impl.BendableCuboid;
+import io.github.kosmx.bendylib.impl.BendableCuboidBuilder;
+import io.github.kosmx.bendylib.impl.BendableCuboidData;
 import net.minecraft.util.Tuple;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.function.Function;
 
 public interface MutableCuboid {
 
     /**
      * Register a mutator to a cuboid
      * @param name registration name
-     * @param builder ICuboid builder
+     * @param builder BendableCuboid builder
      * @return is the registration success
      */
-    boolean registerMutator(String name, ICuboidBuilder<ICuboid> builder);
+    boolean registerMutator(String name, Function<BendableCuboidData, BendableCuboid> builder);
 
     /**
      * Unregister a mutator
@@ -26,7 +30,7 @@ public interface MutableCuboid {
      * @return null, if no active
      */
     @Nullable
-    Tuple<String, ICuboid> getActiveMutator();
+    Tuple<String, BendableCuboid> getActiveMutator();
 
     /**
      * Check if mutator with key exists
@@ -36,7 +40,7 @@ public interface MutableCuboid {
     boolean hasMutator(String key);
 
     @Nullable
-    ICuboidBuilder<ICuboid> getCuboidBuilder(String key);
+    Function<BendableCuboidData, BendableCuboid> getCuboidBuilder(String key);
 
     /**
      * Get a mutator
@@ -46,7 +50,7 @@ public interface MutableCuboid {
     @Nullable
     @Deprecated
     //it can be removed in any future version
-    ICuboid getMutator(String name);
+    BendableCuboid getMutator(String name);
 
     /**
      * Get a mutator and make it the active
@@ -54,7 +58,7 @@ public interface MutableCuboid {
      * @return null, if no registered
      */
     @Nullable
-    ICuboid getAndActivateMutator(@Nullable String name);
+    BendableCuboid getAndActivateMutator(@Nullable String name);
 
     void copyStateFrom(MutableCuboid other);
 

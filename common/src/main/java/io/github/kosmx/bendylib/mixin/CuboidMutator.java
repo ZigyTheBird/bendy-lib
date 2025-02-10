@@ -3,10 +3,11 @@ package io.github.kosmx.bendylib.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import io.github.kosmx.bendylib.ICuboidBuilder;
-import io.github.kosmx.bendylib.MutableCuboid;
+import io.github.kosmx.bendylib.api.MutableCuboid;
+import io.github.kosmx.bendylib.impl.BendableCuboidBuilder;
+import io.github.kosmx.bendylib.impl.BendableCuboidData;
 import io.github.kosmx.bendylib.impl.accessors.CuboidSideAccessor;
-import io.github.kosmx.bendylib.impl.ICuboid;
+import io.github.kosmx.bendylib.impl.BendableCuboid;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.util.Tuple;
 import org.jetbrains.annotations.Nullable;
@@ -18,6 +19,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 @SuppressWarnings({"rawtypes", "unused"})
 @Mixin(ModelPart.Cube.class)
@@ -32,10 +34,10 @@ public class CuboidMutator implements MutableCuboid, CuboidSideAccessor {
     @Shadow @Final
     public ModelPart.Polygon[] polygons;
     @Unique
-    private HashMap<String, ICuboid> mutators = new HashMap<>();
+    private HashMap<String, BendableCuboid> mutators = new HashMap<>();
 
     @Unique
-    private HashMap<String, ICuboidBuilder> mutatorBuilders = new HashMap<>();
+    private HashMap<String, Function<BendableCuboidData, BendableCuboid>> mutatorBuilders = new HashMap<>();
 
     @Unique
     private ModelPart.Polygon[] originalQuads;
@@ -44,11 +46,11 @@ public class CuboidMutator implements MutableCuboid, CuboidSideAccessor {
     private boolean isSidesSwapped = false;
 
     @Unique
-    private ICuboidBuilder.Data partData;
+    private BendableCuboidData partData;
 
     @Nullable
     @Unique
-    private ICuboid activeMutator;
+    private BendableCuboid activeMutator;
 
     @Nullable
     @Unique
@@ -56,13 +58,13 @@ public class CuboidMutator implements MutableCuboid, CuboidSideAccessor {
 
     @Inject(method = "<init>", at = @At(value = "RETURN"))
     private void constructor(int u, int v, float x, float y, float z, float sizeX, float sizeY, float sizeZ, float extraX, float extraY, float extraZ, boolean mirror, float textureWidth, float textureHeight, Set set, CallbackInfo ci){
-        partData = new ICuboidBuilder.Data(u, v, minX, minY, minZ, sizeX, sizeY, sizeZ, extraX, extraY, extraZ, mirror, textureWidth, textureHeight);
+        partData = new BendableCuboidData(u, v, minX, minY, minZ, sizeX, sizeY, sizeZ, extraX, extraY, extraZ, mirror, textureWidth, textureHeight);
         originalQuads = this.polygons;
     }
 
 
     @Override
-    public boolean registerMutator(String name, ICuboidBuilder<ICuboid> builder) {
+    public boolean registerMutator(String name, Function<BendableCuboidData, BendableCuboid> builder) {
         if(mutatorBuilders.containsKey(name)) return false;
         if(builder == null) throw new NullPointerException("builder can not be null");
         mutatorBuilders.put(name, builder);
@@ -85,7 +87,7 @@ public class CuboidMutator implements MutableCuboid, CuboidSideAccessor {
 
     @Nullable
     @Override
-    public Tuple<String, ICuboid> getActiveMutator() {
+    public Tuple<String, BendableCuboid> getActiveMutator() {
         return activeMutator == null ? null : new Tuple<>(activeMutatorID, activeMutator);
     }
 
@@ -96,19 +98,19 @@ public class CuboidMutator implements MutableCuboid, CuboidSideAccessor {
 
     @Nullable
     @Override
-    public ICuboidBuilder<ICuboid> getCuboidBuilder(String key) {
+    public Function<BendableCuboidData, BendableCuboid> getCuboidBuilder(String key) {
         return mutatorBuilders.get(key);
     }
 
     @Nullable
     @Override
-    public ICuboid getMutator(String name) {
+    public BendableCuboid getMutator(String name) {
         return mutators.get(name);
     }
 
     @Nullable
     @Override
-    public ICuboid getAndActivateMutator(@Nullable String name) {
+    public BendableCuboid getAndActivateMutator(@Nullable String name) {
         if(name == null){
             activeMutatorID = null;
             activeMutator = null;
@@ -116,7 +118,7 @@ public class CuboidMutator implements MutableCuboid, CuboidSideAccessor {
         }
         if(mutatorBuilders.containsKey(name)){
             if(!mutators.containsKey(name)){
-                mutators.put(name, mutatorBuilders.get(name).build(partData));
+                mutators.put(name, mutatorBuilders.get(name).apply(partData));
             }
             activeMutatorID = name;
             return activeMutator = mutators.get(name);
@@ -142,10 +144,6 @@ public class CuboidMutator implements MutableCuboid, CuboidSideAccessor {
     private void renderRedirect(PoseStack.Pose entry, VertexConsumer vertexConsumer, int light, int overlay, int color, CallbackInfo ci){
         if(getActiveMutator() != null){
             getActiveMutator().getB().render(entry, vertexConsumer, light, overlay, color);
-            if(getActiveMutator().getB().disableAfterDraw()) {
-                activeMutator = null; //mutator lives only for one render cycle
-                activeMutatorID = null;
-            }
             ci.cancel();
         }
     }

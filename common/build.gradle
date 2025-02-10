@@ -7,9 +7,12 @@ loom {
 }
 
 dependencies {
-    // We depend on fabric loader here to use the fabric @Environment annotations and get the mixin dependencies
-    // Do NOT use other classes from fabric loader
     modImplementation "net.fabricmc:fabric-loader:${rootProject.loader_version}"
+
+    modCompileOnly "maven.modrinth:iris:8l8TrrQz"
+    modCompileOnly "software.bernie.geckolib:geckolib-fabric-${minecraft_version}:${geckolib_version}"
+    modCompileOnly "dev.kosmx.player-anim:player-animation-lib-fabric:${rootProject.player_anim_version}"
+    modCompileOnly "maven.modrinth:3dskinlayers:D4TLEY5I"
 }
 
 publishing {
@@ -20,7 +23,6 @@ publishing {
         }
     }
 
-    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
     repositories {
         if (System.getenv("MAVEN_PASS") != null) {
             maven {
